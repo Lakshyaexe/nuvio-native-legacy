@@ -18,7 +18,7 @@ on:
     branches: [limpar-cache-lg]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -66,6 +66,23 @@ jobs:
           export NUVIO_ARES_PACKAGE="$(command -v ares-package)"
           export NUVIO_RELEASE_OUT="$PWD/out"
           bash tools/arm.sh --ipk --build
+
+      - name: Check the new Clear cache code is inside the package
+        run: |
+          mkdir chk && cd chk
+          ar x "$(ls ../out/*.ipk | head -1)" && tar xzf data.tar.gz
+          B="$(find . -name nuvio-proto -type f | head -1)"
+          strings "$B" | grep -q "Cache limpo." && echo "Clear cache code present"
+          strings "$B" | grep -q "Nuvio Engine/" && echo "torrent engine present"
+
+      - name: Publish the .ipk as a release (direct download link)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create "lg-ipk-${{ github.run_number }}" out/*.ipk
+          --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA"
+          --title "LG ipk with working Clear cache (build ${{ github.run_number }})"
+          --notes "Lite build: no DTS conversion, no Dolby Vision P7 conversion, no service keys. Settings > Esta TV > Limpar cache clears the torrent video cache."
 
       - uses: actions/upload-artifact@v4
         with:
