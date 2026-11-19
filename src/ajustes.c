@@ -9831,7 +9831,7 @@ static void eventoTela(const SDL_Event *e) {
 #else
       /* LG/Samsung: apaga so o cache de video do torrent (pasta p2p/). */
       p2pmotor_limpar_tudo();
-      uxNotificar(i18n("Cache limpo."));
+      uxNotificar(i18n("Pronto."));
 #endif
       return;
     }

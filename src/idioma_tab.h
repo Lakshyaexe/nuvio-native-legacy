@@ -1121,7 +1121,6 @@
   { "Cache do P2P", "P2P cache location" },
   { "Cache em", "Cache on" },
   { "Cache frio", "Cold cache" },
-  { "Cache limpo.", "Cache cleared." },
   { "Cache no pendrive", "USB drive cache" },
   { "Cada addon diz se tem catálogo de canal, inclusive os desligados.", "Each add-on says whether it has a channel catalog, including the ones turned off." },
   { "Cada canal abre aqui por até 18 s em cada modo do player, depois de a rede responder.", "Each channel opens here for up to 18 s in each player mode, after the network responds." },
