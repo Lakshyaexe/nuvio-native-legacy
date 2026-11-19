@@ -14,6 +14,8 @@ name: Build LG webOS ipk
 
 on:
   workflow_dispatch:
+  push:
+    branches: [limpar-cache-lg]
 
 permissions:
   contents: read
