@@ -1,0 +1,63 @@
+name: Build LG webOS ipk
+
+# UNTESTED. Builds the LG webOS .ipk on a free GitHub ARM runner, so the
+# toolchain image (tools/Dockerfile, linux/arm64) runs natively.
+#
+# LITE BUILD: DTS audio conversion, Dolby Vision P7->P8.1 conversion and the
+# Rust MKV core are switched off to keep the build short and to avoid needing
+# Rust on the runner. The built-in torrent engine and libass subtitles stay on.
+# Service keys (Supabase, Trakt, Simkl, TMDB, Seekr) are NOT included unless you
+# add them as repository secrets and pass them below.
+#
+# Run it: Actions tab -> Build LG webOS ipk -> Run workflow. Download the .ipk
+# from the "Artifacts" box at the bottom of the finished run.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 360
+    env:
+      NUVIO_P2P_MOTOR: ${{ github.workspace }}/../nuvio-p2p-motor
+      NUVIO_DTS_FFMPEG: "0"
+      NUVIO_DV7: "0"
+      NUVIO_RUST_MKVCORE: "0"
+      NUVIO_BUILD_JOBS: "4"
+      NV_JOBS: "3"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install ares-package (webOS packager)
+        run: npm install -g @webos-tools/cli
+
+      - name: Build the LG toolchain image
+        run: >
+          docker build --platform linux/arm64
+          --build-arg NUVIO_DTS_FFMPEG=0 --build-arg NUVIO_DV7=0
+          -t nuvio-webos-sdk tools/
+
+      - name: Build the torrent engine for ARM
+        run: bash tools/p2p-motor/build-arm.sh
+
+      - name: Build the .ipk
+        run: |
+          export NUVIO_ARES_PACKAGE="$(command -v ares-package)"
+          export NUVIO_RELEASE_OUT="$PWD/out"
+          bash tools/arm.sh --ipk --build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nuvio-lg-ipk
+          path: |
+            out/*.ipk
+            *.ipk
+          if-no-files-found: error

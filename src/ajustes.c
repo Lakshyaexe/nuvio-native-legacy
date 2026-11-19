@@ -7365,7 +7365,11 @@ static const char *textoLeitura(int op) {
     static uint64_t measuredBytes;
     Uint32 now = SDL_GetTicks();
     if (!measuredAt || now - measuredAt >= 1000) {
+#ifdef NV_ANDROID
       measuredBytes = nv_android_cache_size_all(); measuredAt = now;
+#else
+      measuredBytes = p2pmotor_cache_bytes(); measuredAt = now;
+#endif
     }
     snprintf(buf, sizeof buf, "%.1f MB", measuredBytes / 1048576.0);
     idioma_decimal_texto(buf, ajustes_idioma());
@@ -9824,6 +9828,10 @@ static void eventoTela(const SDL_Event *e) {
 #ifdef NV_ANDROID
       p2pmotor_parar();
       android_limpar_cache();
+#else
+      /* LG/Samsung: apaga so o cache de video do torrent (pasta p2p/). */
+      p2pmotor_limpar_tudo();
+      uxNotificar("Cache limpo.");
 #endif
       return;
     }

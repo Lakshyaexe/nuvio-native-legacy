@@ -148,6 +148,13 @@ void p2pmotor_parar_fundo(void);
 void p2pmotor_parar(void);
 // Saida do app (ver acima).
 void p2pmotor_saida(void);
+// Botao "Limpar cache" dos Ajustes: para o motor e apaga a pasta p2p/ (interna
+// e a de pendrive marcada .nuvio). So o cache de video do torrent: ajustes,
+// conta, perfis e addons moram fora dela. Nao bloqueia (o destroy leva
+// segundos); roda num fio solto.
+void p2pmotor_limpar_tudo(void);
+// Bytes que a pasta p2p/ interna ocupa agora (blocos reais). Faz I/O.
+uint64_t p2pmotor_cache_bytes(void);
 
 // Motivo da ultima parada pela vigia (P2P_ERR_SEM_ESPACO/DISCO/RAM) e zera;
 // 0 sem nada. Fio da tela, a cada quadro: um atomico.

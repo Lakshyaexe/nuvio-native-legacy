@@ -1193,6 +1193,30 @@ void p2pmotor_saida(void) {
   if (!pronto) printf("[p2p-motor] saida: destroy ainda em curso; a sobra fica para o proximo inicio\n");
 }
 
+// Botao "Limpar cache": parar espera o destroy do libtorrent (segundos), entao
+// vai num fio solto para nao travar a tela. A parada normal ja apaga pastaRaiz;
+// limpar_sobra pega o que tiver ficado (sessao que caiu, pendrive).
+static void *limparTudoFio(void *x) {
+  (void)x;
+  p2pmotor_parar();
+  p2pmotor_limpar_sobra();
+  return NULL;
+}
+void p2pmotor_limpar_tudo(void) {
+  pthread_t t;
+  pthread_attr_t a;
+  pthread_attr_init(&a);
+  pthread_attr_setdetachstate(&a, PTHREAD_CREATE_DETACHED);
+  if (pthread_create(&t, &a, limparTudoFio, NULL) != 0) limparTudoFio(NULL);
+  pthread_attr_destroy(&a);
+}
+uint64_t p2pmotor_cache_bytes(void) {
+  char raiz[600], mae[600];
+  struct stat st;
+  if (!pastasInternas(raiz, sizeof raiz, mae, sizeof mae) || lstat(raiz, &st) != 0) return 0;
+  return percorrer(raiz, 0, 0);
+}
+
 // ------------------------------------------------------------------ vigia
 static void *vigiaFio(void *x) {
   const P2pmOps *o = x;
