@@ -48,7 +48,18 @@ jobs:
           -t nuvio-webos-sdk tools/
 
       - name: Build the torrent engine for ARM
-        run: bash tools/p2p-motor/build-arm.sh
+        run: |
+          # The script ends with a size-check demo (poc.c) that needs a helper
+          # file outside this repo. It fails there, after the libraries are
+          # built, so tolerate that and verify the files the app build needs.
+          bash tools/p2p-motor/build-arm.sh || echo "poc.c step failed (expected); checking libraries"
+          W="$NUVIO_P2P_MOTOR/arm"
+          for f in build-arm/libnuvio_engine.a \
+                   build-arm/_deps/nuvio_libtorrent-build/libtorrent-rasterbar.a \
+                   nuvio-engine/include/nuvio_engine/nuvio_engine.h; do
+            test -s "$W/$f" || { echo "MISSING: $W/$f"; exit 1; }
+          done
+          echo "torrent engine libraries OK"
 
       - name: Build the .ipk
         run: |
